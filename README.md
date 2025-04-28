@@ -22,18 +22,15 @@ Here, we provide a wrapper script (run_predictions.sh or run_parallel.sh) that l
 ```
 python3 merge.py "path/where/recon-all/output/tables/are"
 ```
-6. Now, navigate to the folder containing ALL the code using your terminal running
+4. Now, navigate to the folder containing ALL the code using your terminal running
 ```
 cd path/to/the/folder
 ```
-9. An then, run:
+5. To obtain predictions on newdata.csv, and a nice output.csv putting it all together, run:
 ```
 ./run_predictions.sh /path/to/models /path/to/newdata.csv /path/to/output.csv
 ```
-
-## What do you get?
-A new dataframe containing all your old data and the new predictions together.
-
-## Next steps?
-Now, you can use the resulting predictions to estimate Z scores. These can indicate your norm deviations.
-
+6.  Now, you can use the resulting predictions to estimate Z scores. These can indicate your norm-deviations.
+```
+./run_CODE_THATS_NOT_THERE_YET.sh /path/to/output.csv
+```
