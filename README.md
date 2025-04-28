@@ -14,6 +14,7 @@ Here, we provide a wrapper script (run_predictions.sh or run_parallel.sh) that l
 - The wrapper run_predictions.sh calls predict_all_models.R >> use this unless you have crazy loads of data
 - For parallelisation run run_parallel.sh predict_all_models_parallel.R
 - MFPR.R contains the training procedure
+- stats2table_bash.sh and merge.py are to prepare the recon-all outputs
 
 ## How does this work?
 1. Run your recon-all and put all the output data into one table, together with the participant's sex labelled as "female" or "male" (not "Female", not 0 or 1 or any other sort of thing).
