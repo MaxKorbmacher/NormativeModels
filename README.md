@@ -11,10 +11,12 @@ One model per cortical and subcortical region was trained. These models are sex-
 Here, we provide a wrapper script (run_predictions.sh or run_parallel.sh) that loads the pre-trained models from a specified directory (you can download them to), applies them to a dataset (of your choice) based on the sex column, and saves the predictions in a new CSV file. It expects three arguments: the path to the model directory, the path to the new data CSV, and the path for the output CSV. The script checks for missing variables, handles errors, and generates predictions for each model, saving them in separate columns.
 
 ## What are the moving parts?
-- The wrapper run_predictions.sh calls predict_all_models.R >> use this unless you have crazy loads of data
-- MFPR.R contains the training procedure
-- calculate_training_rmse.R
 - stats2table_bash.sh and merge.py are to prepare the recon-all outputs
+- The wrapper run_predictions.sh calls predict_all_models.R to obtain (raw) predictions
+- calculate_z_scores.R to obtain Z-scores
+- calculate_training_rmse.R is necessary to get the Z-scores, as they are defined as (y-y_hat)/RMSE
+- MFPR.R contains the training procedure
+
 
 ## How does this work?
 ### Prerequisites
