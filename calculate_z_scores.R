@@ -1,63 +1,61 @@
 #!/usr/bin/env Rscript
 
-suppressPackageStartupMessages(library(tidyverse))
+# ---- Libraries ----
+suppressPackageStartupMessages({
+  library(tidyverse)
+})
 
+# ---- Parse arguments ----
 args <- commandArgs(trailingOnly = TRUE)
 
 if (length(args) < 3) {
-  stop("Usage: Rscript calculate_z_scores.R /path/to/predictions.csv /path/to/rmse_training.csv /path/to/output_zscores.csv")
+  stop("Usage: Rscript calculate_z_scores.R /path/to/predictions.csv /path/to/rmse_results.csv /path/to/output.csv")
 }
 
-predictions_path <- args[1]
-rmse_path <- args[2]
-output_path <- args[3]
+predictions_path <- args[1]  # Path to the predictions file
+rmse_path <- args[2]         # Path to the RMSE results
+output_path <- args[3]       # Path to save the output
 
-cat("🔵 Predictions file:", predictions_path, "\n")
-cat("🔵 RMSE file:", rmse_path, "\n")
-cat("🔵 Output Z-scores to:", output_path, "\n\n")
+cat("🔵 Prediction data:", predictions_path, "\n")
+cat("🔵 RMSE data:", rmse_path, "\n")
+cat("🔵 Output will be saved to:", output_path, "\n\n")
 
-# ---- Load files ----
-predictions <- read_csv(predictions_path)
-rmse_table <- read_csv(rmse_path)
+# ---- Load prediction data ----
+predictions <- read.csv(predictions_path)
 
-# ---- Prepare ----
-zscore_results <- predictions
+# ---- Load RMSE results ----
+rmse_results <- read.csv(rmse_path)
 
-# ---- For each model prediction column ----
-prediction_cols <- names(predictions) %>% 
-  str_subset("_predicted$")  # columns ending with _predicted
+# Check the column names of the predictions and RMSE results
+cat("Columns in predictions data:", colnames(predictions), "\n")
+cat("Columns in RMSE results:", colnames(rmse_results), "\n")
 
-# Loop over each prediction column
-for (pred_col in prediction_cols) {
+# ---- Initialize Z-scores result ----
+z_scores_results <- predictions  # Start with the predictions data
+
+# Loop through each row in the RMSE results
+for (i in 1:nrow(rmse_results)) {
+  # Extract model name and RMSE value from the current row
+  model_file <- rmse_results$model_file[i]
+  rmse_value <- rmse_results$RMSE[i]
   
-  # Extract base model name (without _predicted)
-  base_col <- str_remove(pred_col, "_predicted$")
+  # Remove '_female.Rdata' or '_male.Rdata' from model_file to get the observed column
+  observed_col <- str_replace(model_file, "_(female|male)\\.Rdata$", "")
+  pred_col <- paste0(observed_col, "_predicted")
   
-  # Check if observed column exists
-  if (!(base_col %in% names(predictions))) {
-    warning(paste("⚠️ Observed column", base_col, "not found. Skipping."))
-    next
+  # Check if both observed and predicted columns exist in the predictions data
+  if (observed_col %in% colnames(predictions) && pred_col %in% colnames(predictions)) {
+    cat("Processing observed and predicted columns:", observed_col, "and", pred_col, "\n")
+    
+    # Calculate Z-scores: Z = (observed - predicted) / RMSE
+    z_scores_results[[paste0(observed_col, "_z_score")]] <- 
+      (predictions[[observed_col]] - predictions[[pred_col]]) / rmse_value
+  } else {
+    cat("⚠️ Columns for", observed_col, "or", pred_col, "not found in predictions data.\n")
   }
-  
-  # Find corresponding RMSE
-  rmse_row <- rmse_table %>% filter(str_detect(model_name, fixed(base_col)))
-  
-  if (nrow(rmse_row) == 0) {
-    warning(paste("⚠️ No RMSE found for", base_col, "in RMSE table. Skipping."))
-    next
-  }
-  
-  training_rmse <- rmse_row$RMSE[1]
-  
-  # Calculate Z-score
-  z_col_name <- paste0(base_col, "_Zscore")
-  zscore_results[[z_col_name]] <- (zscore_results[[base_col]] - zscore_results[[pred_col]]) / training_rmse
-  
-  cat("✅ Calculated Z-scores for", base_col, "\n")
 }
 
-# ---- Save ----
+# ---- Save the result with Z-scores ----
 cat("💾 Saving Z-scores to:", output_path, "\n")
-write_csv(zscore_results, output_path)
-
-cat("🎉 Z-score calculation completed successfully.\n")
+write.csv(z_scores_results, output_path, row.names = FALSE)
+cat("🎉 Z-scores calculated and saved successfully.\n")
