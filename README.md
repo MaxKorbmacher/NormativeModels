@@ -8,7 +8,7 @@ mfp(RegionalVolume~EstimatedTotalIntraCranialVol+fp(Age,df=4),data=YourData)
 ```
 One model per cortical and subcortical region was trained. These models are sex-specific -- they were trained for males and females separately.
 
-Here, we provide a wrapper script (run_predictions.sh or run_parallel.sh) that loads the pre-trained models from a specified directory (you can download them to), applies them to a dataset (of your choice) based on the sex column, and saves the predictions in a new CSV file. It expects three arguments: the path to the model directory, the path to the new data CSV, and the path for the output CSV. The script checks for missing variables, handles errors, and generates predictions for each model, saving them in separate columns.
+Here, we provide different script leading you all the way from data processing to loading pre-trained models from a specified directory (you can download them to), applying them to a dataset (of your choice) based on the sex column, saving predictions and Z-scores into new CSV files. A detailed overview of scripts and how to use them can be found below.
 
 ## What are the moving parts?
 - stats2table_bash.sh and merge.py are to prepare the recon-all outputs
