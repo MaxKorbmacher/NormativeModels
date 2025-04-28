@@ -10,10 +10,7 @@ One model per cortical and subcortical region was trained. These models are sex-
 
 Here, we provide different script leading you all the way from data processing to loading pre-trained models from a specified directory (you can download them to), applying them to a dataset (of your choice) based on the sex column, saving predictions and Z-scores into new CSV files. A detailed overview of scripts and how to use them can be found below.
 
-The probably most intersting part are the Z-scores which indicate deviations from the norm, and are estimated as follows:
-
-
-$\frac{y-\hat{y}}{RMSE}$
+The probably most intersting part are the Z-scores which indicate deviations from the norm, and are estimated as follows: $\frac{y-\hat{y}}{RMSE}$ where RMSE = root mean square error, $y$ = the original observed data, $\hat{y}$ = the predicted value.
 
 ## What are the moving parts?
 - stats2table_bash.sh and merge.py are to prepare the recon-all outputs
