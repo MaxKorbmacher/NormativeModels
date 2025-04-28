@@ -67,8 +67,8 @@ for (i in seq_along(model_files)) {
   model <- env[[model_name]]
   
   # Determine if model is for male or female
-  model_sex <- ifelse(str_detect(basename(model_file), "female"), 0,
-                      ifelse(str_detect(basename(model_file), "male"), 1, NA))
+  model_sex <- ifelse(str_detect(basename(model_file), "female"), "female",
+                      ifelse(str_detect(basename(model_file), "male"), "male", NA))
   
   if (is.na(model_sex)) {
     warning(paste("⚠️ Could not determine sex for", model_file))
@@ -95,6 +95,32 @@ for (i in seq_along(model_files)) {
   
   cat("✅ Done predicting", pred_column_name, "\n\n")
 }
+# ---- Merge male and female prediction columns ----
+
+# Identify prediction columns that have _male or _female suffix
+pred_cols_male <- grep("_male$", names(prediction_results), value = TRUE)
+pred_cols_female <- grep("_female$", names(prediction_results), value = TRUE)
+
+# Extract the base names (without _male/_female)
+base_pred_cols <- unique(str_replace(c(pred_cols_male, pred_cols_female), "_(male|female)$", ""))
+
+# For each base column, merge male and female predictions into one
+for (col_base in base_pred_cols) {
+  male_col <- paste0(col_base, "_male")
+  female_col <- paste0(col_base, "_female")
+  
+  # Create the unified column
+  prediction_results[[paste0(col_base, "_predicted")]] <- coalesce(
+    prediction_results[[female_col]],
+    prediction_results[[male_col]]
+  )
+}
+
+# Optionally: Remove the old _male and _female columns
+prediction_results <- prediction_results %>%
+  select(-all_of(c(pred_cols_male, pred_cols_female)))
+
+cat("🔵 Merged male and female prediction columns into unified _predicted columns.\n\n")
 
 # ---- Save results ----
 cat("💾 Saving all predictions to:", output_path, "\n")
