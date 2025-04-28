@@ -20,7 +20,7 @@ Here, we provide a wrapper script (run_predictions.sh or run_parallel.sh) that l
 
 ## How does this work?
 ### Prerequisites
-0.1 Prerequisites: recon-all, model training, estimating RMSE
+0.1 Prerequisites: recon-all, model training (estimatimate RMSE or leave the provided output_rmse.csv untouched)
 ```
 recon-all -s Subject1 -i Subject1_ses-BL_T1w.nii.gz -all
 Rscript MFPR.R
