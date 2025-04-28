@@ -19,13 +19,18 @@ Here, we provide a wrapper script (run_predictions.sh or run_parallel.sh) that l
 ## How does this work?
 1. Run your recon-all and put all the output data into one table, together with the participant's sex labelled as "female" or "male" (not "Female", not 0 or 1 or any other sort of thing).
 2. You can merge the FreeSurfer produced tables (stats files) using stats2table_bash.sh
-3. Now, the resulting tables need to be merged (again!) into a single table including all participants. There is a provided merge.py script in the repository that can be used for that purpose: run
+3. Now, the resulting tables need to be merged (again!) into a single table including all participants. There is a provided merge.py script in the repository that can be used for that purpose. Note, this script is only used for cortical and _not_ subcortical volumes. Run this from your terminal:
 ```
 python3 merge.py "path/where/recon-all/output/tables/are"
 ```
-from your terminal. Note, this script is only used for cortical and _not_ subcortical volumes.
-6. Now, navigate to the folder containing ALL the code using your terminal running 'cd path/to/the/folder'.
-7. run './run_predictions.sh /path/to/models /path/to/newdata.csv /path/to/output.csv'
+6. Now, navigate to the folder containing ALL the code using your terminal running
+```
+cd path/to/the/folder
+```
+9. An then, run:
+```
+./run_predictions.sh /path/to/models /path/to/newdata.csv /path/to/output.csv
+```
 
 ## What do you get?
 A new dataframe containing all your old data and the new predictions together.
