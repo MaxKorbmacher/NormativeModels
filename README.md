@@ -10,17 +10,21 @@ One model per cortical and subcortical region was trained. These models are sex-
 
 Here, we provide a wrapper script (run_predictions.sh or run_parallel.sh) that loads the pre-trained models from a specified directory (you can download them to), applies them to a dataset (of your choice) based on the sex column, and saves the predictions in a new CSV file. It expects three arguments: the path to the model directory, the path to the new data CSV, and the path for the output CSV. The script checks for missing variables, handles errors, and generates predictions for each model, saving them in separate columns.
 
-What are the moving parts?
+## What are the moving parts?
 - The wrapper run_predictions.sh calls predict_all_models.R >> use this unless you have crazy loads of data
 - For parallelisation run run_parallel.sh predict_all_models_parallel.R
 - MFPR.R contains the training procedure
 
-How does this work?
+## How does this work?
 1. Run your recon-all and put all the output data into one table, together with the participant's sex labelled as "female" or "male" (not "Female", not 0 or 1 or any other sort of thing).
 2. Go to you terminal / shell. Make sure you have bash running.
 3. Navigate to the folder containing ALL the code.
 4. RUN [./run_predictions.sh /path/to/models /path/to/newdata.csv /path/to/output.csv] (without [])
 Note that you have to define all these paths!
 
-The resulting predictions are then used to estimate Z scores.
+## What do you get?
+A new dataframe containing all your old data and the new predictions together.
+
+## Next steps?
+Now, you can use the resulting predictions to estimate Z scores. These can indicate your norm deviations.
 
