@@ -1,4 +1,4 @@
-# Normative Models for Brain volume
+# Normative Models for Brain Volume
 
 This repository contains code to apply trained normative models for regional volumetrics based on vanilla FreeSurfer recon-all pipeline outputs using the Desikan Killiany atlas.
 
