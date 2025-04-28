@@ -13,24 +13,38 @@ Here, we provide a wrapper script (run_predictions.sh or run_parallel.sh) that l
 ## What are the moving parts?
 - The wrapper run_predictions.sh calls predict_all_models.R >> use this unless you have crazy loads of data
 - MFPR.R contains the training procedure
+- calculate_training_rmse.R
 - stats2table_bash.sh and merge.py are to prepare the recon-all outputs
 
 ## How does this work?
-1. Run your recon-all and put all the output data into one table, together with the participant's sex labelled as "female" or "male" (not "Female", not 0 or 1 or any other sort of thing).
-2. You can merge the FreeSurfer produced tables (stats files) using stats2table_bash.sh
-3. Now, the resulting tables need to be merged (again!) into a single table including all participants. There is a provided merge.py script in the repository that can be used for that purpose. Note, this script is only used for cortical and _not_ subcortical volumes. Run this from your terminal:
+### Prerequisites
+0.1 Prerequisites: recon-all, model training, estimating RMSE
+```
+recon-all -s Subject1 -i Subject1_ses-BL_T1w.nii.gz -all
+Rscript MFPR.R
+Rscript calculate_training_rmse.R /path/to/models /path/to/output_rmse.csv
+```
+0.2 You can merge the FreeSurfer produced tables (stats files) using stats2table_bash.sh
+```
+cd /path/with/FS/ouput/folders
+sh /path/to/stats2table_bash.sh
+```
+0.3 Now, the resulting tables need to be merged (again!) into a single table including all participants. There is a provided merge.py script in the repository that can be used for that purpose. Note, this script is only used for cortical and _not_ subcortical volumes. Run this from your terminal:
 ```
 python3 merge.py "path/where/recon-all/output/tables/are"
 ```
-4. Now, navigate to the folder containing ALL the code using your terminal running
+0.4 Add respective demographics, etc. **Necessary**: The participant's sex labelled as "female" or "male" (_not_ "Female", not 0 or 1 or any other sort of thing).
+0.5 Download the models and code and put them all into the same folder
+0.6 Now, navigate to the folder containing ALL the code and models using your terminal running
 ```
 cd path/to/the/folder
 ```
-5. To obtain predictions on newdata.csv, and a nice output.csv putting it all together, run:
+### The actual pipeline: super simple
+1. To obtain predictions on newdata.csv, and a nice output.csv putting it all together, run:
 ```
 ./run_predictions.sh /path/to/models /path/to/newdata.csv /path/to/output.csv
 ```
-6.  Now, you can use the resulting predictions to estimate Z scores. These can indicate your norm-deviations.
+2.  Now, you can use the resulting predictions to estimate Z scores. These can indicate your norm-deviations.
 ```
-./run_CODE_THATS_NOT_THERE_YET.sh /path/to/output.csv
+Rscript calculate_z_scores.R /path/to/predictions.csv /path/to/rmse_training.csv /path/to/output_zscores.csv
 ```
