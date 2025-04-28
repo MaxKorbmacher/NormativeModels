@@ -4,7 +4,7 @@ This repository contains code to apply trained normative models for regional vol
 
 The models were trained using multivariate fractional polynomial regression (MFPR), which has previously been suggested to provide the most accurate region-level normative models (https://doi.org/10.1016/s2589-7500(23)00250-9). Following the authors' suggestion, we use a fractional polynomial up to the fourth degree of freedom and a linear relationship with the total intracranial volume to prediction the regional brain volume:
 ```
-RegionalVolume~EstimatedTotalIntraCranialVol+fp(Age,df=4)
+mfp(RegionalVolume~EstimatedTotalIntraCranialVol+fp(Age,df=4),data=YourData)
 ```
 One model per cortical and subcortical region was trained. These models are sex-specific -- they were trained for males and females separately.
 
