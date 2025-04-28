@@ -48,5 +48,5 @@ cd path/to/the/folder
 ```
 2.  Now, you can use the resulting predictions to estimate Z scores. These can indicate your norm-deviations.
 ```
-Rscript calculate_z_scores.R /path/to/predictions.csv /path/to/rmse_training.csv /path/to/output_zscores.csv
+Rscript calculate_z_scores.R output.csv output_rmse.csv Zscores.csv
 ```
