@@ -52,3 +52,4 @@ cd path/to/the/folder
 ```
 Rscript calculate_z_scores.R output.csv output_rmse.csv Zscores.csv
 ```
+Our happy robot friend ChatGPT aided in making the code in this repository more readible.
