@@ -14,12 +14,15 @@ Each cortical and subcortical region was modeled separately and sex-specific.
 
 ## ✨ Quickstart
 
-```bash
+
 # 1. Prepare data with FreeSurfer and merge tables
 # 2. Run predictions
+```
 ./run_predictions.sh /path/to/models /path/to/newdata.csv /path/to/output.csv
+```
 
 # 3. Calculate Z-scores
+```
 Rscript calculate_z_scores.R output.csv output_rmse.csv Zscores.csv
 ```
 
