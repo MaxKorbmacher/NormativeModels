@@ -85,7 +85,7 @@ Rscript calculate_z_scores.R output.csv output_rmse.csv Zscores.csv
 ```
 Z-scores are computed as:
 $Z = \frac{y - \hat{y}}{RMSE}$
-where $y$ = observed volume, $hat{y}$ = predicted volume, and RMSE = the root mean squared error of the models in the training data.
+where $y$ = observed volume, $\hat{y}$ = predicted volume, and RMSE = the root mean squared error of the models in the training data.
 
 ---
 
