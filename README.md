@@ -20,6 +20,22 @@ The probably most intersting part are the Z-scores which indicate deviations fro
 - MFPR.R contains the training procedure
 
 ## How does this work?
+
+### The pipeline: super simple
+1. To obtain predictions on newdata.csv, and a nice output.csv putting it all together, run:
+```
+./run_predictions.sh /path/to/models /path/to/newdata.csv /path/to/output.csv
+```
+2.  Now, you can use the resulting predictions to estimate Z scores. These can indicate your norm-deviations.
+```
+Rscript calculate_z_scores.R output.csv output_rmse.csv Zscores.csv
+```
+
+### Requirements to start the pipeline
+It is your responsibility to get the prerequisites right. The below steps provide suggestions for how to get there, but there are many alternative ways, and you might already have your own pipeline. The most important things you need.
+- [ ] The right data structure (check the example table: sex (female, male) & brain features)
+- [ ] A txt, csv or Excel file
+
 ### Prerequisites
 0.1 Prerequisites: recon-all, model training (estimatimate RMSE or leave the provided output_rmse.csv untouched)
 ```
@@ -42,18 +58,6 @@ python3 merge.py "path/where/recon-all/output/tables/are"
 ```
 cd path/to/the/folder
 ```
-## Requirements to start the actual pipeline
-It is your responsibility to get the prerequisites right. The above steps are only suggestions for how to get there, but there are many alternative ways, and you might already have your own pipeline. The most important things you need.
-- [ ] The right data structure (check the example table: sex (female, male) & brain features)
-- [ ] A txt, csv or Excel file
 
-### The actual pipeline: super simple
-1. To obtain predictions on newdata.csv, and a nice output.csv putting it all together, run:
-```
-./run_predictions.sh /path/to/models /path/to/newdata.csv /path/to/output.csv
-```
-2.  Now, you can use the resulting predictions to estimate Z scores. These can indicate your norm-deviations.
-```
-Rscript calculate_z_scores.R output.csv output_rmse.csv Zscores.csv
-```
-Our happy robot friend ChatGPT aided in making the code in this repository more readible.
+
+_Our happy robot friend ChatGPT aided in making the code in this repository more readible._
