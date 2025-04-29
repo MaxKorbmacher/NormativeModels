@@ -1,63 +1,116 @@
-# _Brain Reference_: Normative Models for Brain Volume
+```markdown
+# Brain Reference: Normative Models for Brain Volume
 
-This repository contains code to apply trained normative models for regional volumetrics based on vanilla FreeSurfer recon-all pipeline outputs using the Desikan Killiany atlas.
+This repository contains code to apply trained normative models for regional brain volumetrics based on FreeSurfer **recon-all** outputs using the **Desikan-Killiany atlas**.
 
-The models were trained using multivariate fractional polynomial regression (MFPR), which has previously been suggested to provide the most accurate region-level normative models (https://doi.org/10.1016/s2589-7500(23)00250-9). Following the authors' suggestion, we use a fractional polynomial up to the fourth degree of freedom and a linear relationship with the total intracranial volume to prediction the regional brain volume:
+The models were trained using **multivariate fractional polynomial regression (MFPR)**, following evidence that MFPR provides highly accurate region-level normative models ([source](https://doi.org/10.1016/s2589-7500(23)00250-9)).
+
+Model formula:
 ```
-mfp(RegionalVolume~EstimatedTotalIntraCranialVol+fp(Age,df=4),data=YourData)
+mfp(RegionalVolume ~ EstimatedTotalIntraCranialVol + fp(Age, df=4), data=YourData)
 ```
-One model per cortical and subcortical region was trained. These models are sex-specific -- they were trained for males and females separately.
+Each cortical and subcortical region was modeled separately and sex-specific.
 
-Here, we provide different script leading you all the way from data processing to loading pre-trained models from a specified directory (you can download them to), applying them to a dataset (of your choice) based on the sex column, saving predictions and Z-scores into new CSV files. A detailed overview of scripts and how to use them can be found below.
+---
 
-The probably most intersting part are the Z-scores which indicate deviations from the norm, and are estimated as follows: $Z = \frac{y-\hat{y}}{RMSE}$ where RMSE = root mean square error, $y$ = the original observed data, $\hat{y}$ = the predicted value.
+## ✨ Quickstart
 
-## What are the moving parts?
-- stats2table_bash.sh and merge.py are to prepare the recon-all outputs
-- The wrapper run_predictions.sh calls predict_all_models.R to obtain (raw) predictions
-- calculate_z_scores.R to obtain Z-scores
-- calculate_training_rmse.R is necessary to get the Z-scores, as they are defined as (y-y_hat)/RMSE
-- MFPR.R contains the training procedure
-
-## How does this work?
-
-### The pipeline: super simple
-1. To obtain predictions on newdata.csv, and a nice output.csv putting it all together, run:
-```
+```bash
+# 1. Prepare data with FreeSurfer and merge tables
+# 2. Run predictions
 ./run_predictions.sh /path/to/models /path/to/newdata.csv /path/to/output.csv
-```
-2.  Now, you can use the resulting predictions to estimate Z scores. These can indicate your norm-deviations.
-```
+
+# 3. Calculate Z-scores
 Rscript calculate_z_scores.R output.csv output_rmse.csv Zscores.csv
 ```
 
-### Requirements to start the pipeline
-It is your responsibility to get the prerequisites right. The below steps provide suggestions for how to get there, but there are many alternative ways, and you might already have your own pipeline. The most important things you need.
-- [ ] The right data structure (check the example table: sex (female, male) & brain features)
-- [ ] A txt, csv or Excel file
+---
 
-### Prerequisites
-0.1 Prerequisites: recon-all, model training (estimatimate RMSE or leave the provided output_rmse.csv untouched)
-```
+## 📦 Usage
+
+- Prepare cortical volume tables using FreeSurfer and provided scripts (`stats2table_bash.sh`, `merge.py`).
+- Add a `sex` column ("female" or "male") to your merged CSV.
+- Download pretrained models from [OSF](https://osf.io/6r8dy/).
+- Run predictions and calculate Z-scores.
+
+### Example Input Table
+
+| eid | sex    | lh_transversetemporal_volume | rh_transversetemporal_volume |
+|-----|--------|------------------------------|------------------------------|
+| 001 | female | 4500                         | 4600                         |
+| 002 | male   | 4700                         | 4800                         |
+
+---
+
+## 🔎 Components
+
+Scripts included:
+- `stats2table_bash.sh` — extract regional stats from FreeSurfer outputs
+- `merge.py` — merge extracted stats into a single table
+- `run_predictions.sh` — wrapper to call `predict_all_models.R`
+- `calculate_z_scores.R` — compute Z-scores
+- `calculate_training_rmse.R` — estimate RMSE if retraining models
+- `MFPR.R` — model training
+
+---
+
+## 🛤️ Pipeline Overview
+
+### 1. Data Preparation
+```bash
+# FreeSurfer recon-all
 recon-all -s Subject1 -i Subject1_ses-BL_T1w.nii.gz -all
-Rscript MFPR.R
-Rscript calculate_training_rmse.R /path/to/models /path/to/output_rmse.csv
-```
-0.2 You can merge the FreeSurfer produced tables (stats files) using stats2table_bash.sh
-```
-cd /path/with/FS/ouput/folders
+
+# Extract stats
+cd /path/to/FS_output/folders
 sh /path/to/stats2table_bash.sh
-```
-0.3 Now, the resulting tables need to be merged (again!) into a single table including all participants. There is a provided merge.py script in the repository that can be used for that purpose. Note, this script is only used for cortical and _not_ subcortical volumes. Run this from your terminal:
-```
-python3 merge.py "path/where/recon-all/output/tables/are"
-```
-0.4 Add respective demographics, etc. **Necessary**: The participant's sex labelled as "female" or "male" (_not_ "Female", not 0 or 1 or any other sort of thing).
-0.5 Download the models (from https://osf.io/6r8dy/) and code (from this repo or https://doi.org/10.5281/zenodo.15300575) and put them all into the same folder
-0.6 Now, navigate to the folder containing ALL the code and models using your terminal running
-```
-cd path/to/the/folder
+
+# Merge stats
+python3 merge.py "path/to/tables" "session_id_suffix" "path/to/save"
+
+# Add demographics (sex: "female" or "male")
 ```
 
+### 2. Prediction
+```bash
+# Download pretrained models and place them in the working folder
+cd /path/to/folder
+./run_predictions.sh /path/to/models /path/to/newdata.csv /path/to/output.csv
+```
 
-_Our happy robot friend ChatGPT aided in making the code in this repository more readible._
+### 3. Z-score Calculation
+```bash
+# Using predicted values and training RMSE
+Rscript calculate_z_scores.R output.csv output_rmse.csv Zscores.csv
+```
+Z-scores are computed as:
+\[
+Z = \frac{y - \hat{y}}{RMSE}
+\]
+where \( y \) = observed volume, \( \hat{y} \) = predicted volume.
+
+---
+
+## 🧩 Requirements
+
+- FreeSurfer (`recon-all`)
+- Python 3 (`pandas`, `numpy`)
+- R (`mfp`, `tidyverse`)
+- CSV or Excel files containing brain regions and demographics
+- A `sex` column with values exactly `"female"` or `"male"`
+
+---
+
+## 📚 Notes
+
+- Subcortical volumes are currently not merged automatically; focus is on cortical volumes.
+- You can retrain models using `MFPR.R` and recompute RMSE with `calculate_training_rmse.R`.
+- Provided `output_rmse.csv` can be used if you skip retraining.
+
+---
+
+_This repository was improved in readability and structure with assistance from ChatGPT._  
+_Last update: April 2025._
+```
+
+---
