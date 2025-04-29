@@ -44,8 +44,8 @@ cd path/to/the/folder
 ```
 ## Requirements to start the actual pipeline
 It is your responsibility to get the prerequisites right. The above steps are only suggestions for how to get there, but there are many alternative ways, and you might already have your own pipeline. The most important things you need.
-[] The right data structure (check the example table: sex (female, male) & brain features)
-[] A txt, csv or Excel file
+- [] The right data structure (check the example table: sex (female, male) & brain features)
+- [] A txt, csv or Excel file
 
 ### The actual pipeline: super simple
 1. To obtain predictions on newdata.csv, and a nice output.csv putting it all together, run:
