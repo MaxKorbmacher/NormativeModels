@@ -1,4 +1,4 @@
-# Brain Reference: Normative Models for Brain Volume
+# _Brain Reference_: Normative Models for Brain Volume
 
 This repository contains code to apply trained normative models for regional brain volumetrics based on FreeSurfer **recon-all** outputs using the **Desikan-Killiany atlas**.
 
