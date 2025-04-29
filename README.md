@@ -53,7 +53,7 @@ sh /path/to/stats2table_bash.sh
 python3 merge.py "path/where/recon-all/output/tables/are"
 ```
 0.4 Add respective demographics, etc. **Necessary**: The participant's sex labelled as "female" or "male" (_not_ "Female", not 0 or 1 or any other sort of thing).
-0.5 Download the models and code and put them all into the same folder
+0.5 Download the models (from https://osf.io/6r8dy/) and code (from this repo or https://doi.org/10.5281/zenodo.15300575) and put them all into the same folder
 0.6 Now, navigate to the folder containing ALL the code and models using your terminal running
 ```
 cd path/to/the/folder
