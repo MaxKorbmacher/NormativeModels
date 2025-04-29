@@ -41,11 +41,10 @@ safe_predict <- function(model, newdata) {
   
   prediction_data <- newdata[, model_vars, drop = FALSE]
   
-  if (any(is.na(prediction_data))) {
-    warning("⚠️ Prediction data contains NAs.")
+  preds <- rep(NA, nrow(prediction_data))  # default to NAs
+  if (any(complete.cases(prediction_data))) {
+    preds[complete.cases(prediction_data)] <- predict(model, newdata = prediction_data[complete.cases(prediction_data), ])
   }
-  
-  preds <- predict(model, newdata = prediction_data)
   
   if (all(is.na(preds))) {
     warning("⚠️ All predictions are NA.")
@@ -90,11 +89,17 @@ for (i in seq_along(model_files)) {
   })
   
   # Add predictions to result dataframe
-  prediction_results[[pred_column_name]] <- NA  # Pre-fill with NA
-  prediction_results[prediction_results$sex == model_sex, pred_column_name] <- preds
+  if (!(pred_column_name %in% names(prediction_results))) {
+    prediction_results[[pred_column_name]] <- NA  # Pre-fill with NA if column does not exist yet
+  }
+  
+  # ✅ Fix for NA in sex:
+  sex_mask <- !is.na(prediction_results$sex) & prediction_results$sex == model_sex
+  prediction_results[sex_mask, pred_column_name] <- preds
   
   cat("✅ Done predicting", pred_column_name, "\n\n")
 }
+
 # ---- Merge male and female prediction columns ----
 
 # Identify prediction columns that have _male or _female suffix
