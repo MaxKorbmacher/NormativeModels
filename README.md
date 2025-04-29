@@ -14,17 +14,15 @@ Each cortical and subcortical region was modeled separately and sex-specific.
 
 ## ✨ Quickstart
 
-
+```bash
 # 1. Prepare data with FreeSurfer and merge tables
 # 2. Run predictions
-```
 ./run_predictions.sh /path/to/models /path/to/newdata.csv /path/to/output.csv
-```
 
 # 3. Calculate Z-scores
-```
 Rscript calculate_z_scores.R output.csv output_rmse.csv Zscores.csv
 ```
+
 
 ---
 
@@ -86,9 +84,7 @@ cd /path/to/folder
 Rscript calculate_z_scores.R output.csv output_rmse.csv Zscores.csv
 ```
 Z-scores are computed as:
-$
-Z = \frac{y - \hat{y}}{RMSE}
-$
+$Z = \frac{y - \hat{y}}{RMSE}$
 where $y$ = observed volume, $hat{y}$ = predicted volume, and RMSE = the root mean squared error of the models in the training data.
 
 ---
