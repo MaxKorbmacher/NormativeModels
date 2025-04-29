@@ -1,4 +1,4 @@
-# Normative Models for Brain Volume
+# _Brain Reference_: Normative Models for Brain Volume
 
 This repository contains code to apply trained normative models for regional volumetrics based on vanilla FreeSurfer recon-all pipeline outputs using the Desikan Killiany atlas.
 
@@ -10,7 +10,7 @@ One model per cortical and subcortical region was trained. These models are sex-
 
 Here, we provide different script leading you all the way from data processing to loading pre-trained models from a specified directory (you can download them to), applying them to a dataset (of your choice) based on the sex column, saving predictions and Z-scores into new CSV files. A detailed overview of scripts and how to use them can be found below.
 
-The probably most intersting part are the Z-scores which indicate deviations from the norm, and are estimated as follows: $\frac{y-\hat{y}}{RMSE}$ where RMSE = root mean square error, $y$ = the original observed data, $\hat{y}$ = the predicted value.
+The probably most intersting part are the Z-scores which indicate deviations from the norm, and are estimated as follows: $Z = \frac{y-\hat{y}}{RMSE}$ where RMSE = root mean square error, $y$ = the original observed data, $\hat{y}$ = the predicted value.
 
 ## What are the moving parts?
 - stats2table_bash.sh and merge.py are to prepare the recon-all outputs
@@ -18,7 +18,6 @@ The probably most intersting part are the Z-scores which indicate deviations fro
 - calculate_z_scores.R to obtain Z-scores
 - calculate_training_rmse.R is necessary to get the Z-scores, as they are defined as (y-y_hat)/RMSE
 - MFPR.R contains the training procedure
-
 
 ## How does this work?
 ### Prerequisites
@@ -43,6 +42,11 @@ python3 merge.py "path/where/recon-all/output/tables/are"
 ```
 cd path/to/the/folder
 ```
+## Requirements to start the actual pipeline
+It is your responsibility to get the prerequisites right. The above steps are only suggestions for how to get there, but there are many alternative ways, and you might already have your own pipeline. The most important things you need.
+[] The right data structure (check the example table: sex (female, male) & brain features)
+[] A txt, csv or Excel file
+
 ### The actual pipeline: super simple
 1. To obtain predictions on newdata.csv, and a nice output.csv putting it all together, run:
 ```
