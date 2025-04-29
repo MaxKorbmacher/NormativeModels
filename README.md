@@ -101,7 +101,7 @@ where $y$ = observed volume, $\hat{y}$ = predicted volume, and RMSE = the root m
 
 ## 📚 Notes
 
-- Subcortical volumes are currently not merged automatically; focus is on cortical volumes.
+- Subcortical volumes are currently not merged automatically; focus is on cortical volumes. However, the models are provided for both.
 - You can retrain models using `MFPR.R` and recompute RMSE with `calculate_training_rmse.R`.
 - Provided `output_rmse.csv` can be used if you skip retraining.
 
