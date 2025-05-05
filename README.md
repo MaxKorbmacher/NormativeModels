@@ -109,3 +109,4 @@ where $y$ = observed volume, $\hat{y}$ = predicted volume, and RMSE = the root m
 
 _This repository was improved in readability and structure with assistance from ChatGPT._  
 _Last update: April 2025._
+_Please cite this repo when using it's contents._
