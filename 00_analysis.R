@@ -1,18 +1,21 @@
 # Application of Brain Reference to cross sectional and longitudinal MS data
 # Max Korbmacher, April 2025
 #
-# --------------------------------- #
-# ------------Structure------------ #
-# --------------------------------- #
-# 0. Data wrangling---------------- #
-# 1. Case-control checks----------- #
-# 1.1 number of deviations--------- #
-# 1.2 Z-score comparison----------- #
-# 1.3 Diagnostic prediction-------- #
-# 2. Longitudinal assessment------- #
-# 2.1 Development of deviations---- #
-# --------------------------------- #
-# --------------------------------- #
+# ----------------------------------- #
+# --------------Structure------------ #
+# ----------------------------------- #
+# 0. Data wrangling------------------ #
+# 1. Case-control checks------------- #
+# 1.1 number of deviations----------- #
+# 1.2 Z-score comparison------------- #
+# 1.3 Diagnostic prediction---------- #
+# 2. Longitudinal assessment--------- #
+# 2.1 Development of deviations------ #
+# 3. Individual-level assessments---- #
+# 3.1 At baseline-------------------- #
+# 3.2 Longitudinally----------------- #
+# ----------------------------------- #
+# ----------------------------------- #
 #
 # wash your hands before eating
 rm(list = ls(all.names = TRUE)) # clear all objects includes hidden objects.
@@ -24,7 +27,7 @@ savepath = "/Users/max/Documents/Local/MS/NormativeModels/results/"
 # load packages
 if (!require("pacman")) install.packages("pacman")
 pacman::p_load(tidyverse,psych,effsize,ggseg,patchwork,rstatix,ggpubr,
-               caret,lme4,lmerTest,haven,reshape2)
+               caret,lme4,lmerTest,haven,reshape2,stats,entropy)
 # load data
 cross = read.csv("/Users/max/Documents/Local/MS/NormativeModels/code/Zscores.csv")
 long = read.csv("/Users/max/Documents/Local/MS/NormativeModels/code/Zscores_long.csv")
@@ -412,22 +415,29 @@ run_and_extract_pvals <- function(df, predictor) {
   results <- map_dfr(regions, extract_pval)
   return(results)
 }
-# aplpy functions and put it all together
+# apply functions and put it all together
 age_pvals     <- run_and_extract_pvals(long,  "age")
 edss_pvals    <- run_and_extract_pvals(long,  "edss")
 pasat_pvals   <- run_and_extract_pvals(long1, "PASAT")
 fatigue_pvals <- run_and_extract_pvals(long2, "fatigue")
 all_pvals <- bind_rows(age_pvals, edss_pvals, pasat_pvals, fatigue_pvals)
 #all_pvals$p_value = all_pvals$p_value * nrow(all_pvals) # can be used for Bongferroni correction
+
+all_pvals_uncorrected = all_pvals
+all_pvals$p_value = p.adjust(all_pvals$p_value,method = "fdr")
 all_pvals_wide <- all_pvals %>%
   pivot_wider(names_from = predictor, values_from = p_value)
 all_pvals_wide[2:5] = round(all_pvals_wide[2:5],3)
 write.csv(x = all_pvals_wide,paste(savepath,"long_associations_pvalues.csv",sep=""),row.names = FALSE)
 
+all_pvals_wide1 <- all_pvals_uncorrected %>%
+  pivot_wider(names_from = predictor, values_from = p_value)
+all_pvals_wide1[2:5] = round(all_pvals_wide1[2:5],3)
+write.csv(x = all_pvals_wide1,paste(savepath,"long_associations_pvalues_uncorrected.csv",sep=""),row.names = FALSE)
 
 # Test area -------
 #
-# Hypothesis driven tests (thalamus and frontal lobe)
+# Hypothesis driven tests (thalamus and putamen)
 m = lmer(edss~Left.Thalamus_z_score+(1|eid),long)
 m = lmer(edss~Right.Thalamus_z_score+(1|eid),long)
 
@@ -456,3 +466,311 @@ m = lmer(edss~rh_superiorfrontal_volume+age+sex+TotalGrayVol+(1|eid),long)
 
 
 summary(m)
+
+# 3. Individual-level assessments----
+#
+# 3.1 Baseline ----
+#
+test = cross %>% filter(diagnosis == "MS") %>% select(ends_with("z_score")) %>%
+  mutate_all(~ ifelse((.) <= -1.96, 1, 0)) %>% 
+  colSums() / nrow(cross %>% filter(diagnosis == "MS"))
+test[order(data.frame(test)$test)]
+
+max(cross %>% filter(diagnosis == "HC") %>% select(ends_with("z_score")) %>%
+  mutate_all(~ ifelse((.) <= -1.96, 1, 0)) %>% 
+  colSums() / nrow(cross %>% filter(diagnosis == "MS")))
+
+
+plot_indiv_c = merge(z_cortical %>% filter(group=="HC"),data.frame(perc = test, label = gsub("_z_score","",names(test)), by = "label"))
+plot_indiv_c$perc=plot_indiv_c$perc*100
+indi0 = ggplot(dk %>% as_tibble() %>% left_join(plot_indiv_c %>% select(region,hemi,perc) %>% as_tibble())) + 
+  geom_brain(atlas = dk,aes(fill = perc),color="black")+
+  scale_fill_gradient2(low = "white",mid = "green",high="black",limits = c(0,40)) +
+  theme_void() + theme(legend.position="none")
+plot_indiv = merge(z_subcortical,data.frame(perc = test, region.x = gsub("_z_score","",names(test)), by = "region.x"))
+plot_indiv$perc=plot_indiv$perc*100
+indi1 = ggplot(plot_indiv) + geom_brain(atlas = aseg, side = "coronal",aes(fill = perc),color="black")+
+  scale_fill_gradient2(low = "white",mid = "green",high="black",limits = c(0,40)) + 
+  #labs(title="Regional volume loss") + 
+  theme_void() + labs(fill = "Deviation %")
+
+baseline = ggarrange(indi0, indi1,widths=c(2,.5))
+ggsave(paste(savepath,"regional_heterogeniety.pdf",sep=""),plot=baseline, width = 10, height = 2)
+relative_numbers = data.frame(perc = test, label = gsub("_z_score","",names(test)))
+
+
+# 3.2 Longitudinally ----
+#
+#
+# 1. Identify z_score columns
+z_cols <- long %>% select(ends_with("z_score")) %>% names()
+
+# 2. Classify deviations: 1 if <= -1.96 else 0
+long_dev <- long %>%
+  select(eid, age, all_of(z_cols)) %>%
+  mutate(across(all_of(z_cols), ~ ifelse(. <= -1.96, 1, 0)))
+
+# 3. Pivot longer for region-wise analysis
+long_dev_long <- long_dev %>%
+  pivot_longer(cols = all_of(z_cols), names_to = "region", values_to = "deviation") %>%
+  arrange(eid, region, age)  # important for transitions
+
+# 4. Within-subject deviation proportion
+within_subject <- long_dev_long %>%
+  group_by(eid, region) %>%
+  summarise(
+    prop_deviation = mean(deviation, na.rm = TRUE),
+    n_visits = n(),
+    n_deviating = sum(deviation, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+# 5. Entropy of deviation state per region × subject
+entropy_table <- long_dev_long %>%
+  group_by(eid, region) %>%
+  summarise(
+    entropy = entropy::entropy(table(deviation), unit = "log2"),
+    .groups = "drop"
+  )
+
+# 6. Transition counts and consistency (e.g., 0→1, 1→0)
+transitions <- long_dev_long %>%
+  group_by(eid, region) %>%
+  summarise(
+    transitions = sum(abs(diff(deviation))),  # number of state changes
+    first = first(deviation),
+    last = last(deviation),
+    .groups = "drop"
+  )
+
+# 7. Merge all summaries into one table
+summary_stats <- within_subject %>%
+  left_join(entropy_table, by = c("eid", "region")) %>%
+  left_join(transitions, by = c("eid", "region"))
+
+# ----------- VISUALIZATIONS -----------
+
+# A. Histogram of deviation consistency
+ggplot(summary_stats, aes(x = prop_deviation)) +
+  geom_histogram(binwidth = 0.1, fill = "steelblue") +
+  facet_wrap(~region, scales = "free_y") +
+  theme_minimal() +
+  labs(title = "Proportion of visits with deviation", x = "Proportion", y = "Count")
+
+# B. Entropy distribution
+ggplot(summary_stats, aes(x = entropy)) +
+  geom_histogram(binwidth = 0.2, fill = "darkorange") +
+  facet_wrap(~region, scales = "free_y") +
+  theme_minimal() +
+  labs(title = "Entropy of deviation pattern", x = "Entropy (bits)", y = "Count")
+
+# C. Transitions heatmap (optional: top N variable regions)
+top_regions <- summary_stats %>%
+  group_by(region) %>%
+  summarise(avg_transitions = mean(transitions, na.rm = TRUE)) %>%
+  top_n(9, avg_transitions) %>%
+  pull(region)
+
+ggplot(summary_stats %>% filter(region %in% top_regions),
+       aes(x = reorder(eid, transitions), y = region, fill = transitions)) +
+  geom_tile() +
+  scale_fill_gradient(low = "white", high = "red") +
+  theme_minimal() +
+  labs(title = "Deviation transitions per subject", x = "Subject", y = "Region") +
+  theme(axis.text.x = element_blank(), axis.ticks.x = element_blank())
+
+
+
+
+
+
+
+# --- Transition classification per subject × region ---
+transition_breakdown <- long_dev_long %>%
+  group_by(eid, region) %>%
+  mutate(prev = lag(deviation)) %>%
+  filter(!is.na(prev)) %>%
+  summarise(
+    worsening = sum(prev == 0 & deviation == 1, na.rm = TRUE),
+    recovery  = sum(prev == 1 & deviation == 0, na.rm = TRUE),
+    stable    = sum(prev == deviation, na.rm = TRUE),
+    n_transitions = n(),
+    .groups = "drop"
+  )
+
+# --- Summary tables (from previous steps) ---
+within_subject <- long_dev_long %>%
+  group_by(eid, region) %>%
+  summarise(
+    prop_deviation = mean(deviation, na.rm = TRUE),
+    n_visits = n(),
+    n_deviating = sum(deviation, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+entropy_table <- long_dev_long %>%
+  group_by(eid, region) %>%
+  summarise(
+    entropy = entropy::entropy(table(deviation), unit = "log2"),
+    .groups = "drop"
+  )
+
+# Combine everything
+summary_stats <- within_subject %>%
+  left_join(entropy_table, by = c("eid", "region")) %>%
+  left_join(transition_breakdown, by = c("eid", "region"))
+
+# --- Optional: visualize proportions of worsening/recovery ---
+summary_stats_long <- summary_stats %>%
+  pivot_longer(cols = c(worsening, recovery, stable),
+               names_to = "transition_type", values_to = "count") %>%
+  mutate(prop = count / n_transitions)
+
+ggplot(summary_stats_long, aes(x = transition_type, y = prop, fill = transition_type)) +
+  geom_boxplot(alpha = 0.8) +
+  facet_wrap(~region, scales = "free_y") +
+  theme_minimal() +
+  labs(title = "Relative frequency of transition types",
+       y = "Proportion", x = "Transition Type")
+
+
+#########
+
+
+
+
+
+
+
+
+
+
+
+
+library(tidyverse)
+library(ggseg)
+library(ggseg3d)
+library(ggsegExtra)
+library(ggpubr)
+
+# Threshold-based classification
+binary_df <- long %>%
+  select(eid, age, session, ends_with("z_score")) %>%
+  mutate(across(ends_with("z_score"), ~ ifelse(. <= -1.96, 1, 0)))
+
+# Helper to compute transitions
+compute_transitions <- function(data) {
+  regions <- names(data)[grepl("z_score", names(data))]
+  
+  transition_list <- lapply(regions, function(region) {
+    temp <- data %>%
+      select(eid, session, !!sym(region)) %>%
+      arrange(eid, session) %>%
+      group_by(eid) %>%
+      mutate(
+        prev = lag(!!sym(region)),
+        transition = case_when(
+          is.na(prev) ~ NA_character_,
+          prev == 0 & !!sym(region) == 1 ~ "worsen",
+          prev == 1 & !!sym(region) == 0 ~ "improve",
+          prev == !!sym(region) ~ "stable",
+          TRUE ~ NA_character_
+        )
+      )
+    
+    temp %>%
+      filter(!is.na(transition)) %>%
+      count(transition) %>%
+      mutate(region = gsub("_z_score", "", region))
+  })
+  
+  bind_rows(transition_list) %>%
+    group_by(region, transition) %>%
+    summarise(n = sum(n), .groups = "drop") %>%
+    group_by(region) %>%
+    mutate(prop = n / sum(n))
+}
+
+# Helper to compute entropy
+compute_entropy <- function(data) {
+  regions <- names(data)[grepl("z_score", names(data))]
+  
+  entropies <- sapply(regions, function(region) {
+    tab <- table(data[[region]])
+    probs <- tab / sum(tab)
+    -sum(probs * log2(probs + 1e-9))  # Avoid log(0)
+  })
+  
+  tibble(
+    label = gsub("_z_score", "", names(entropies)),
+    entropy = entropies
+  )
+}
+
+# Helper to compute mean deviation proportions
+compute_dev_prop <- function(data) {
+  data %>%
+    select(eid, session, ends_with("z_score")) %>%
+    pivot_longer(cols = ends_with("z_score"), names_to = "region", values_to = "value") %>%
+    filter(!is.na(value)) %>%
+    group_by(region) %>%
+    summarise(mean_prop = mean(value, na.rm = TRUE)) %>%
+    mutate(label = gsub("_z_score", "", region))
+}
+
+# Compute all metrics
+transitions <- compute_transitions(binary_df)
+entropy_df <- compute_entropy(binary_df)
+deviation_prop <- compute_dev_prop(binary_df)
+
+# ---- Function to plot ggseg
+plot_metric <- function(df, value_col,low,high, title = "") {
+  # Cortical
+  test_cort <- z_cortical %>%
+    filter(group == "MS") %>%
+    left_join(df, by = "label")
+  
+  p1 <- ggplot(dk %>% as_tibble() %>%
+                 left_join(test_cort %>% select(region, hemi, all_of(value_col)), by = c("region", "hemi"))) +
+    geom_brain(atlas = dk, aes_string(fill = value_col), color = "black") +
+    scale_fill_gradient2(low = "blue", mid = "white", high = "red", limits = c(low,high)) +
+    theme_void() + ggtitle(title) + theme(legend.position = "none")
+  
+  # Subcortical
+  df$region.x <- df$label
+  test_sub <- z_subcortical %>%
+    filter(group == "MS") %>%
+    left_join(df, by = "region.x")
+  
+  p2 <- ggplot(test_sub) +
+    geom_brain(atlas = aseg, side = "coronal", aes_string(fill = value_col), color = "black") +
+    scale_fill_gradient2(low = "blue", mid = "white", high = "red",limits = c(low,high)) +
+    theme_void() + 
+    labs(fill = title)
+  
+  ggarrange(p1, p2, widths = c(2, 0.5))
+}
+# Plot each metric
+entropy_plot <- plot_metric(entropy_df, "entropy", 0, 1, "Entropy")
+deviation_prop = deviation_prop %>% select(label, mean_prop)
+deviation_plot <- plot_metric(deviation_prop, "mean_prop",0,.25, "Mean Deviation Proportion")
+
+# Plot each transition type
+worsen_plot  <- plot_metric(transitions %>% filter(transition == "worsen") %>% rename(label = region), "prop",0,.075,  "Worsen Rate")
+improve_plot <-  plot_metric(transitions %>% filter(transition == "improve") %>% rename(label = region), "prop",0,.075, "Improve Rate")
+stable_plot  <- plot_metric(transitions %>% filter(transition == "stable") %>% rename(label = region),"prop",0.925,1,"Stable Rate")
+
+# check stability closer
+test = transitions %>% filter(transition == "stable")
+test[order(test$prop),]
+test[order(test$prop,decreasing = F),] # we are interested in the least stable regions
+mean(test$prop)
+sd(test$prop)
+test = transitions %>% filter(transition == "worsen")
+test[order(test$prop,decreasing = T),] # least stable AND decrasing is interesting
+mean(test$prop)
+sd(test$prop)
+test = transitions %>% filter(transition == "improve")
+test[order(test$prop,decreasing = T),] # least stable AND decrasing is interesting
+mean(test$prop)
+sd(test$prop)
