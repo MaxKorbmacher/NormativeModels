@@ -34,6 +34,8 @@ names(df)[names(df) == "Right.Thalamus.Proper"] = "Right.Thalamus"
 cross = df %>% filter(session != 2 & session != 3 & diagnosis == "HC")
 cross = cross %>% filter(diagnosis == "HC")
 cross$sex = ifelse(cross$sex == "F" | cross$sex == "Female","female","male")
+# provide some summary stats of the healthy control sample (including both training and test/HC participants)
+cross %>% group_by(data) %>% summarize(N = length(na.omit(age)), M = mean(na.omit(age)), SD = sd(na.omit(age)), Min = min(na.omit(age)), Max = max(na.omit(age)))
 #
 # split off test data
 ms$diagnosis = "MS"
@@ -42,15 +44,16 @@ cross = rbind(ms %>% filter(session == 1) %>% select(names(cross)),cross)
 cross = na.omit(cross)
 # 1:1 NN PS matching w/o replacement
 m.out = matchit(factor(diagnosis) ~ age + sex + EstimatedTotalIntraCranialVol,
-                  data = cross,
-                  method = "nearest",
-                  distance = "glm")
+                data = cross,
+                method = "nearest",
+                distance = "glm")
 m.out = match_data(m.out)
 write.csv(x = m.out,file = paste(savepath,"cross_MSvsHC.csv",sep=""))
 #
 #
 # filter out the test data
 cross = cross[!cross$eid %in% m.out$eid,]
+table(cross$sex)/nrow(cross)
 #
 # harmonize
 covars = cross %>% dplyr::select(eid,sex,scanner,age,data)
