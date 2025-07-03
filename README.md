@@ -114,4 +114,4 @@ _Please cite_
 
 "Accelerated frontal grey matter atrophy in relapsing remitting multiple sclerosis". Max Korbmacher, Ingrid Anne Lie, Kristin Wesnes, Eric Westman, Thomas Espeseth, Ole Andreassen, Hanne Harbo, Gro Owren Nygaard, Lars T. Westlye, Stig Wergeland, Kjell-Morten Myhr, Einar August Hogestol, Oivind Torkildsen, medRxiv 2025.07.01.25330635; doi: https://doi.org/10.1101/2025.07.01.25330635 
 
-_when using it's contents._
+_when using contents from thos repository._
