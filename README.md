@@ -108,7 +108,8 @@ where $y$ = observed volume, $\hat{y}$ = predicted volume, and RMSE = the root m
 ---
 
 _This repository was improved in readability and structure with assistance from ChatGPT._  
-_Last update: April 2025._
+_Last update: July 2025._
+
 _Please cite_  
 
 "Accelerated frontal grey matter atrophy in relapsing remitting multiple sclerosis". Max Korbmacher, Ingrid Anne Lie, Kristin Wesnes, Eric Westman, Thomas Espeseth, Ole Andreassen, Hanne Harbo, Gro Owren Nygaard, Lars T. Westlye, Stig Wergeland, Kjell-Morten Myhr, Einar August Hogestol, Oivind Torkildsen, medRxiv 2025.07.01.25330635; doi: https://doi.org/10.1101/2025.07.01.25330635 
