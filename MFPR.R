@@ -3,7 +3,7 @@
 #
 # by Max Korbmacher, max.korbmacher@gmail.com
 # Created: 24 April 2025
-# Last change: 28 April 2025
+# Last change: 23 June 2025
 #
 # ------------------------------------------ #
 #                 Contents
@@ -20,7 +20,7 @@
 # clean up
 rm(list = ls(all.names = TRUE)) # clear all objects includes hidden objects.
 gc() #free up memory and report the memory usage.
-savepath = "/Users/max/Documents/Local/MS/NormativeModels/results/" # define results/save/oputput path
+savepath = "/Users/max/Documents/Local/MS/NormativeModels/Regular/results/" # define results/save/oputput path
 # load packages with pacman
 if (!require("pacman")) install.packages("pacman")
 pacman::p_load(tidyverse,mfp,neuroCombat,MatchIt)
@@ -31,17 +31,32 @@ ms = read.csv("/Users/max/Documents/Local/Data/Lifespan/MS_long.csv")
 names(df)[names(df) == "Left.Thalamus.Proper"] = "Left.Thalamus"
 names(df)[names(df) == "Right.Thalamus.Proper"] = "Right.Thalamus"
 #
-cross = df %>% filter(session != 2 & session != 3 & diagnosis == "HC")
-cross = cross %>% filter(diagnosis == "HC")
+cross = df %>%
+  group_by(eid) %>%
+  filter(session == min(session)) %>%
+  ungroup() %>% filter(diagnosis == "HC")
 cross$sex = ifelse(cross$sex == "F" | cross$sex == "Female","female","male")
-# provide some summary stats of the healthy control sample (including both training and test/HC participants)
-cross %>% group_by(data) %>% summarize(N = length(na.omit(age)), M = mean(na.omit(age)), SD = sd(na.omit(age)), Min = min(na.omit(age)), Max = max(na.omit(age)))
 #
 # split off test data
 ms$diagnosis = "MS"
 cross$diagnosis = "HC"
-cross = rbind(ms %>% filter(session == 1) %>% select(names(cross)),cross)
+ms_cross = ms %>%
+  group_by(eid) %>%
+  filter(session == min(session)) %>%
+  ungroup()
+cross = rbind(ms_cross %>% select(names(cross)),cross)
 cross = na.omit(cross)
+
+# provide some summary stats of the MS sample
+cross %>% filter(diagnosis=="MS") %>% summarize(N = length(na.omit(age)), M = mean(na.omit(age)), SD = sd(na.omit(age)), Min = min(na.omit(age)), Max = max(na.omit(age)))
+table(cross %>% filter(diagnosis=="MS") %>% pull(sex))
+table(cross %>% filter(diagnosis=="MS") %>% pull(sex)) / cross %>% filter(diagnosis=="MS") %>% nrow()
+
+table(cross%>%na.omit() %>%filter(diagnosis=="MS") %>% pull(sex))/nrow(na.omit(ms_cross))
+
+
+
+
 # 1:1 NN PS matching w/o replacement
 m.out = matchit(factor(diagnosis) ~ age + sex + EstimatedTotalIntraCranialVol,
                 data = cross,
@@ -53,7 +68,16 @@ write.csv(x = m.out,file = paste(savepath,"cross_MSvsHC.csv",sep=""))
 #
 # filter out the test data
 cross = cross[!cross$eid %in% m.out$eid,]
+
+cross = cross %>% filter(session != 2 & session != 3 & diagnosis == "HC")
+
 table(cross$sex)/nrow(cross)
+
+# provide some summary stats of the healthy control sample (including both training and test/HC participants)
+cross %>% filter(diagnosis=="HC") %>% group_by(data) %>% summarize(N = length(na.omit(age)), M = mean(na.omit(age)), SD = sd(na.omit(age)), Min = min(na.omit(age)), Max = max(na.omit(age)))
+nrow(cross%>%filter(diagnosis=="HC"))
+table(cross%>%na.omit() %>%filter(diagnosis=="HC") %>% pull(sex))/nrow(na.omit(cross))
+
 #
 # harmonize
 covars = cross %>% dplyr::select(eid,sex,scanner,age,data)
