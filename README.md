@@ -112,6 +112,8 @@ _Last update: September 2025._
 
 _Please cite_  
 
-"Accelerated grey matter atrophy in relapsing remitting multiple sclerosis". Max Korbmacher, Ingrid Anne Lie, Kristin Wesnes, Eric Westman, Thomas Espeseth, Ole Andreassen, Hanne Harbo, Gro Owren Nygaard, Lars T. Westlye, Stig Wergeland, Kjell-Morten Myhr, Einar August Hogestol, Oivind Torkildsen, medRxiv 2025.07.01.25330635; doi: https://doi.org/10.1101/2025.07.01.25330635 
+"Normative Modelling of Brain Volume for Diagnostic and Prognostic Stratification in Multiple Sclerosis"
+Max Korbmacher, Ingrid Anne Lie, Kristin Wesnes, Eric Westman, Thomas Espeseth, Ole Andreas Andreassen, Lars T. Westlye, Stig Wergeland, Hanne Flinstad Harbo, Gro Owren Nygaard, Kjell-Morten Myhr, Einar August Høgestøl, Øivind Torkildsen, Alzheimer’s Disease Neuroimaging Initiative
+doi: https://doi.org/10.1101/2025.09.14.25335702 
 
 _when using contents from thos repository._
